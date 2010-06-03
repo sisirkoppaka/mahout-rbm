@@ -541,8 +541,8 @@ public class RBM {
 		return 0;
 	}
 
-	public float predictRating(int user, int item) {
-		// TODO
+  public float predictRating(int user, int item) {
+    // TODO
     return 0;
   }
 }
