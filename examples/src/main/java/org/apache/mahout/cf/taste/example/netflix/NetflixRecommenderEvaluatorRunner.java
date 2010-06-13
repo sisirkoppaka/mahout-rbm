@@ -41,7 +41,7 @@ public final class NetflixRecommenderEvaluatorRunner {
     RecommenderEvaluator evaluator = new AverageAbsoluteDifferenceRecommenderEvaluator();
     File ratingsFile = TasteOptionParser.getRatings(args);
     if (ratingsFile != null) {
-      DataModel model = new NetflixDataModel(ratingsFile, true);
+      DataModel model = new NetflixCSVDataModel(ratingsFile, true);
       double evaluation = evaluator.evaluate(new NetflixRecommenderBuilder(), null, model, 0.9, 0.1);
       log.info(String.valueOf(evaluation));
     } else {
