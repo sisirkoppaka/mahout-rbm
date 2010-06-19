@@ -17,152 +17,51 @@
 
 package org.apache.mahout.cf.taste.impl.recommender.rbm;
 
-import java.util.List;
-import java.lang.Math;
-
-import org.apache.mahout.cf.taste.impl.common.FastByIDMap;
-import org.apache.mahout.cf.taste.impl.model.GenericPreference;
-import org.apache.mahout.cf.taste.recommender.Recommender;
-import org.apache.mahout.cf.taste.model.DataModel;
-import org.apache.mahout.common.RandomUtils;
-import org.apache.mahout.cf.taste.common.TasteException;
-
+import org.apache.hadoop.conf.Configuration;
+import org.apache.mahout.common.AbstractJob;
+import org.apache.mahout.math.hadoop.DistributedRowMatrix;
 import org.apache.mahout.math.jet.random.engine.DRand;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /** A pure RBM algorithm. */
-public class RBM {
+public class RBM extends AbstractJob {
   
-  /** Default optimum constants for 100 hidden variables on the Netflix dataset. */
-  private int totalFeatures = 100;
-  private int softmax = 5;
-  private double epsilonw = 0.001;
-  /** Learning rate for weights */
-  private double epsilonvb = 0.008;
-  /** Learning rate for biases of visible units */
-  private double epsilonhb = 0.0006;
-  /** Learning rate for biases of hidden units */
-  private double weightCost = 0.0001;
-  private double momentum = 0.8;
-  private double finalMomentum = 0.9;
-  
-  private final double e = 0.00002; /* Stop condition */
-  
-  private int numItems;
-  private int numUsers;
-  
-  private double[][][] vishid;
-  private double[][] visbiases;
-  private double[] hidbiases;
-  private double[][][] CDpos;
-  private double[][][] CDneg;
-  private double[][][] CDinc;
-  private double[][] Dij;
-  private double[][] DIJinc;
-  
-  private double[] poshidprobs;
-  private char[] poshidstates;
-  private char[] curposhidstates;
-  private double[] poshidact;
-  private double[] neghidact;
-  private double[] neghidprobs;
-  private char[] neghidstates;
-  private double[] hidbiasinc;
-  
-  private double[][] nvp2;
-  private double[][] negvisprobs;
-  private char[] negvissoftmax;
-  private double[][] posvisact;
-  private double[][] negvisact;
-  private double[][] visbiasinc;
-  
-  private int[] moviercount;
-  private int[] moviecount;
-  private int[] movieseencount;
-  
-  private int[][] useridx; // TODO: Replace
-  private int[] userent; // TODO: Replace
+  RBMState state;
+  RBMDriver driver;
   
   public RBM(int totalFeatures, int softmax, double epsilonw, double epsilonvb,
       double epsilonhb, double weightCost, double momentum, double finalMomentum) {
-    this.totalFeatures = totalFeatures;
-    this.softmax = softmax;
-    this.epsilonw = epsilonw;
-    this.epsilonvb = epsilonvb;
-    this.epsilonhb = epsilonhb;
-    this.weightCost = weightCost;
-    this.momentum = momentum;
-    this.finalMomentum = finalMomentum;
     
-    /** Bring data structures to life */
-    vishid = new double[numItems][softmax][totalFeatures];
-    visbiases = new double[numItems][softmax];
-    hidbiases = new double[totalFeatures];
-    CDpos = new double[numItems][softmax][totalFeatures];
-    CDneg = new double[numItems][softmax][totalFeatures];
-    CDinc = new double[numItems][softmax][totalFeatures];
-    Dij = new double[numItems][totalFeatures];
-    DIJinc = new double[numItems][totalFeatures];
-    
-    poshidprobs = new double[totalFeatures];
-    poshidstates = new char[totalFeatures];
-    curposhidstates = new char[totalFeatures];
-    poshidact = new double[totalFeatures];
-    neghidact = new double[totalFeatures];
-    neghidprobs = new double[totalFeatures];
-    neghidstates = new char[totalFeatures];
-    hidbiasinc = new double[totalFeatures];
-    
-    nvp2 = new double[numItems][softmax];
-    negvisprobs = new double[numItems][softmax];
-    negvissoftmax = new char[numItems];
-    posvisact = new double[numItems][softmax];
-    negvisact = new double[numItems][softmax];
-    visbiasinc = new double[numItems][softmax];
-    
-    moviercount = new int[softmax * numItems];
-    moviecount = new int[numItems];
-    movieseencount = new int[numItems];
-    
+    state = new RBMState(totalFeatures, softmax, epsilonw, epsilonvb,
+      epsilonhb, weightCost, momentum, finalMomentum);    
   }
   
-  private void zero(int[] arraySet, int i) {
-    int m;
+  @Override
+  public int run(String[] arg0) throws Exception {
+    int numRows, numCols;
+      //Set command line options
+    Configuration conf = new Configuration();
+    addOption("input", "i", "CSV Input file in (user,item,rating) format", true);
+    addOption("output", "o", "Output location", true);
+    Map<String, String> args = parseArguments(arg0);
     
-    for (m = 0; m < i; m++) {
-      arraySet[m] = 0;
-    }
-  }
-  
-  private void zero(double[] arraySet, int i) {
-    int m;
+    Path input = new Path(args.get("--input"));
+    Path output = new Path(args.get("--output"));
     
-    for (m = 0; m < i; m++) {
-      arraySet[m] = 0;
-    }
-  }
-  
-  private void zero(double[][] arraySet, int i, int j) {
-    int m, n;
+    //do stuff
+    Path inputUserMatrixPath = new Path(output, "inputUserseqfile");
+    RBMInputDriver.runJob(input, inputUserMatrixPath);
+        
+    //Get values of numRows, numCols here
+    DistributedRowMatrix inputUserMatrix = new DistributedRowMatrix(inputUserMatrixPath,
+        new Path(inputUserMatrixPath.parent(), 'inputUserMatrix'), numRows, numCols);
     
-    for (m = 0; m < i; m++) {
-      for (n = 0; n < j; n++) {
-        arraySet[m][n] = 0;
-      }
-    }
-  }
-  
-  private void zero(double[][][] arraySet, int i, int j, int k) {
-    int m, n, o;
+    JobConf depConf = new JobConf(conf);
+    inputUserMatrix.configure(depConf);
+
+    DistributedRowMatrix inputMovieMatrix = inputUserMatrix.transpose();
     
-    for (m = 0; m < i; m++) {
-      for (n = 0; n < j; n++) {
-        for (o = 0; o < k; o++) {
-          arraySet[m][n][o] = 0;
-        }
-      }
-    }
+    driver = new RBMDriver(inputUserMatrix, inputMovieMatrix);
+    driver.runJob();
   }
   
   public void initScore() {
@@ -287,7 +186,7 @@ public class RBM {
             sumW[h] += vishid[m][r][h];
           }
         }
-        
+        // Positive phasepo
         /** Compute probabilities, and then sample the state of hidden units */
         for (h = 0; h < totalFeatures; h++) {
           poshidprobs[h] = 1.0 / (1.0 + Math.exp(-sumW[h] - hidbiases[h]));

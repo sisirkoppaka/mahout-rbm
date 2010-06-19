@@ -52,6 +52,7 @@ public final class RBMRecommender extends AbstractRecommender {
   private FastByIDMap<Integer> userMap;
   private FastByIDMap<Integer> itemMap;
   private RBM rbm;
+  //private RBMState state;
   
   /** Default optimum constants for 100 hidden variables on the Netflix dataset. */
   private final int totalFeatures = 100;
