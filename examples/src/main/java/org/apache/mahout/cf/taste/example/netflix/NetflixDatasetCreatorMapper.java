@@ -50,12 +50,8 @@ public class NetflixDatasetCreatorMapper extends MapReduceBase implements
   @Override
   public void map(LongWritable key, Text value,
                   OutputCollector<VLongWritable,VLongWritable> output, Reporter reporter) throws IOException {
-    
-    StringBuilder contents = new StringBuilder();
-    String document = value.toString();
-    String userID = findUserID(document);
-    
-    //FILL IN
+  
+    //This DataSetCreatorMapper and DataSetCreatorReducer may not be required. Remove stubs when done with rest of algo.
   }
   
   @Override

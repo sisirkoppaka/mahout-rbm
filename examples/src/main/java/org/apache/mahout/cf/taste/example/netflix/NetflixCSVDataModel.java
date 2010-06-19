@@ -41,8 +41,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * <p>This is a {@link DataModel} that reads the Netflix data set, as represented in its
- * unpacked file structure. Note that unpacking the distribution entails untarring the main
- * archive, then untarring the archive of training set data files.</p>
+ * unpacked file structure.
  */
 public final class NetflixCSVDataModel implements DataModel {
   

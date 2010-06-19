@@ -55,143 +55,21 @@ public final class NetflixDatasetCreatorDriver {
   
   private NetflixDatasetCreatorDriver() { }
   
-  /**
-   * Takes in two arguments:
-   * <ol>
-   * <li>The input {@link org.apache.hadoop.fs.Path} where the input documents live</li>
-   * <li>The output {@link org.apache.hadoop.fs.Path} where to write the classifier as a
-   * {@link org.apache.hadoop.io.SequenceFile}</li>
-   * </ol>
-   * 
-   * @param args
-   *          The args
-   */
   public static void main(String[] args) throws IOException {
     DefaultOptionBuilder obuilder = new DefaultOptionBuilder();
     ArgumentBuilder abuilder = new ArgumentBuilder();
     GroupBuilder gbuilder = new GroupBuilder();
     
-    Option dirInputPathOpt = obuilder.withLongName("input").withRequired(true).withArgument(
-      abuilder.withName("input").withMinimum(1).withMaximum(1).create()).withDescription(
-      "The input directory path").withShortName("i").create();
     
-    Option dirOutputPathOpt = obuilder.withLongName("output").withRequired(true).withArgument(
-      abuilder.withName("output").withMinimum(1).withMaximum(1).create()).withDescription(
-      "The output directory Path").withShortName("o").create();
-    
-    Option categoriesOpt = obuilder.withLongName("categories").withRequired(true).withArgument(
-      abuilder.withName("categories").withMinimum(1).withMaximum(1).create()).withDescription(
-      "Location of the categories file.  One entry per line. "
-          + "Will be used to make a string match in Wikipedia Category field").withShortName("c").create();
-    
-    Option exactMatchOpt = obuilder.withLongName("exactMatch").withDescription(
-      "If set, then the category name must exactly match the "
-          + "entry in the categories file. Default is false").withShortName("e").create();
-    Option analyzerOpt = obuilder.withLongName("analyzer").withRequired(false).withArgument(
-      abuilder.withName("analyzer").withMinimum(1).withMaximum(1).create()).withDescription(
-      "The analyzer to use, must have a no argument constructor").withShortName("a").create();
-    Option helpOpt = obuilder.withLongName("help").withDescription("Print out help").withShortName("h")
-        .create();
-    
-    Group group = gbuilder.withName("Options").withOption(categoriesOpt).withOption(dirInputPathOpt)
-        .withOption(dirOutputPathOpt).withOption(exactMatchOpt).withOption(analyzerOpt).withOption(helpOpt)
-        .create();
-    
-    Parser parser = new Parser();
-    parser.setGroup(group);
-    try {
-      CommandLine cmdLine = parser.parse(args);
-      if (cmdLine.hasOption(helpOpt)) {
-        CommandLineUtil.printHelp(group);
-        return;
-      }
-      
-      String inputPath = (String) cmdLine.getValue(dirInputPathOpt);
-      String outputPath = (String) cmdLine.getValue(dirOutputPathOpt);
-      String catFile = (String) cmdLine.getValue(categoriesOpt);
-      Class<? extends Analyzer> analyzerClass = WikipediaAnalyzer.class;
-      if (cmdLine.hasOption(analyzerOpt)) {
-        String className = cmdLine.getValue(analyzerOpt).toString();
-        analyzerClass = (Class<? extends Analyzer>) Class.forName(className);
-        // try instantiating it, b/c there isn't any point in setting it if
-        // you can't instantiate it
-        analyzerClass.newInstance();
-      }
-      runJob(inputPath, outputPath, catFile, cmdLine.hasOption(exactMatchOpt),
-        analyzerClass);
-    } catch (OptionException e) {
-      log.error("Exception", e);
-      CommandLineUtil.printHelp(group);
-    } catch (ClassNotFoundException e) {
-      log.error("Exception: Analyzer class not found", e);
-    } catch (IllegalAccessException e) {
-      log.error("Exception: Couldn't instantiate the class", e);
-    } catch (InstantiationException e) {
-      log.error("Exception: Couldn't instantiate the class", e);
-    }
   }
   
-  /**
-   * Run the job
-   * 
-   * @param input
-   *          the input pathname String
-   * @param output
-   *          the output pathname String
-   * @param catFile
-   *          the file containing the Wikipedia categories
-   * @param exactMatchOnly
-   *          if true, then the Wikipedia category must match exactly instead of simply containing the
-   *          category string
-   */
-  public static void runJob(String input,
-                            String output,
-                            String catFile,
-                            boolean exactMatchOnly,
-                            Class<? extends Analyzer> analyzerClass) throws IOException {
+
+  public static void runJob() throws IOException {
     JobClient client = new JobClient();
     JobConf conf = new JobConf(NetflixDatasetCreatorDriver.class);
     if (NetflixDatasetCreatorDriver.log.isInfoEnabled()) {
-      log.info("Input: {} Out: {} Categories: {}", new Object[] {input, output,
-                                                                                               catFile});
     }
-    conf.set("key.value.separator.in.input.line", " ");
-    conf.set("xmlinput.start", "<text xml:space=\"preserve\">");
-    conf.set("xmlinput.end", "</text>");
-    conf.setOutputKeyClass(Text.class);
-    conf.setOutputValueClass(Text.class);
-    conf.setBoolean("exact.match.only", exactMatchOnly);
-    conf.set("analyzer.class", analyzerClass.getName());
-    FileInputFormat.setInputPaths(conf, new Path(input));
-    Path outPath = new Path(output);
-    FileOutputFormat.setOutputPath(conf, outPath);
-    conf.setMapperClass(NetflixDatasetCreatorMapper.class);
-    conf.setNumMapTasks(100);
-    conf.setInputFormat(XmlInputFormat.class);
-    // conf.setCombinerClass(WikipediaDatasetCreatorReducer.class);
-    conf.setReducerClass(NetflixDatasetCreatorReducer.class);
-    conf.setOutputFormat(WikipediaDatasetCreatorOutputFormat.class);
-    conf
-        .set("io.serializations",
-          "org.apache.hadoop.io.serializer.JavaSerialization,org.apache.hadoop.io.serializer.WritableSerialization");
-    // Dont ever forget this. People should keep track of how hadoop conf
-    // parameters and make or break a piece of code
-    
-    HadoopUtil.overwriteOutput(outPath);
-
-    Set<String> categories = new HashSet<String>();
-    for (String line : new FileLineIterable(new File(catFile))) {
-      categories.add(line.trim().toLowerCase());
-    }
-    
-    DefaultStringifier<Set<String>> setStringifier = new DefaultStringifier<Set<String>>(conf, GenericsUtil
-        .getClass(categories));
-    
-    String categoriesStr = setStringifier.toString(categories);
-    
-    conf.set("wikipedia.categories", categoriesStr);
-    
-    client.setConf(conf);
+   //fill in
     JobClient.runJob(conf);
   }
 }

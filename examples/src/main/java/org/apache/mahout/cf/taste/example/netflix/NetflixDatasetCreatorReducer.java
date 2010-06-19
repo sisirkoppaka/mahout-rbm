@@ -29,9 +29,8 @@ import org.apache.hadoop.mapred.Reporter;
 import org.apache.mahout.math.Vector;
 import org.apache.mahout.math.VectorWritable;
 
-/**
- * Can also be used as a local Combiner
- */
+//This DataSetCreatorMapper and DataSetCreatorReducer may not be required. Remove stubs when done with rest of algo.
+
 public class NetflixDatasetCreatorReducer extends MapReduceBase 
 implements Reducer<VLongWritable,VLongWritable,VLongWritable,VectorWritable> {
   
