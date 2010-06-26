@@ -16,6 +16,8 @@
  */
 package org.apache.mahout.cf.taste.impl.recommender.rbm;
 
+import java.io.IOException;
+
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.io.IntWritable;

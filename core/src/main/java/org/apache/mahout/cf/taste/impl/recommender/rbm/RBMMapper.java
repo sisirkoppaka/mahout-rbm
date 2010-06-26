@@ -68,7 +68,6 @@ public class RBMMapper extends Mapper<IntWritable,VectorWritable,IntPairWritable
         sumW[h] += state.vishid[m][r][h];
       }
     }
-    // Positive phasepo
     /** Compute probabilities, and then sample the state of hidden units */
     for (h = 0; h < state.totalFeatures; h++) {
       state.poshidprobs[h] = 1.0 / (1.0 + Math.exp(-sumW[h] - state.hidbiases[h]));
@@ -271,7 +270,7 @@ public class RBMMapper extends Mapper<IntWritable,VectorWritable,IntPairWritable
                * alpha*ContrastiveDivergence (biases are just weights to
                * neurons that stay always 1.0)
                */
-              state.CDinc[m][rr][h] = Momentum * state.CDinc[m][rr][h] + state.EpsilonW
+              state.CDinc[m][rr][h] = state.Momentum * state.CDinc[m][rr][h] + state.EpsilonW
                   * ((CDp - CDn) - state.weightCost * state.vishid[m][rr][h]);
               state.vishid[m][rr][h] += state.CDinc[m][rr][h];
             }
@@ -284,7 +283,7 @@ public class RBMMapper extends Mapper<IntWritable,VectorWritable,IntPairWritable
           if (state.posvisact[m][rr] != 0.0 || state.negvisact[m][rr] != 0.0) {
             state.posvisact[m][rr] /= (state.moviecount[m]);
             state.negvisact[m][rr] /= (state.moviecount[m]);
-            state.visbiasinc[m][rr] = Momentum * state.visbiasinc[m][rr] + state.epsilonvb
+            state.visbiasinc[m][rr] = state.Momentum * state.visbiasinc[m][rr] + state.epsilonvb
                 * ((state.posvisact[m][rr] - state.negvisact[m][rr]));
             state.visbiases[m][rr] += state.visbiasinc[m][rr];
           }
@@ -296,7 +295,7 @@ public class RBMMapper extends Mapper<IntWritable,VectorWritable,IntPairWritable
         if (state.poshidact[h] != 0.0 || state.neghidact[h] != 0.0) {
           state.poshidact[h] /= ((numcases));
           state.neghidact[h] /= ((numcases));
-          state.hidbiasinc[h] = Momentum * state.hidbiasinc[h] + state.EpsilonHB
+          state.hidbiasinc[h] = state.Momentum * state.hidbiasinc[h] + state.EpsilonHB
               * ((state.poshidact[h] - state.neghidact[h]));
           state.hidbiases[h] += state.hidbiasinc[h];
         }

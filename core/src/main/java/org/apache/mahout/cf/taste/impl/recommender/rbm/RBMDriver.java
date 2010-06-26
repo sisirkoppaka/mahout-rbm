@@ -103,39 +103,41 @@ public final class RBMDriver {
     }
     
     /** Optimize current feature */
-    double nrmse = 2.0, last_rmse = 10.0;
-    double prmse = 0, last_prmse = 0;
+    state.nrmse = 2.0;
+    state.last_rmse = 10.0;
+    state.prmse = 0;
+    state.last_prmse = 0;
     double s;
     int n;
     int loopcount = 0;
-    double EpsilonW = state.epsilonw;
-    double EpsilonVB = state.epsilonvb;
-    double EpsilonHB = state.epsilonhb;
-    double Momentum = state.momentum;
+    state.EpsilonW = state.epsilonw;
+    state.EpsilonVB = state.epsilonvb;
+    state.EpsilonHB = state.epsilonhb;
+    state.Momentum = state.initMomentum;
     state.zero(state.CDinc, state.numItems, state.softmax, state.totalFeatures);
     state.zero(state.visbiasinc, state.numItems, state.softmax);
     state.zero(state.hidbiasinc, state.totalFeatures);
     state.tSteps = 1;
     
     /** Iterate till improvement is less than e */
-    while (((nrmse < (last_rmse - state.e)) || loopcount < 14) && loopcount < 80) {
+    while (((state.nrmse < (state.last_rmse - state.e)) || loopcount < 14) && loopcount < 80) {
       
-      if (loopcount >= 10) tSteps = 3 + (loopcount - 10) / 5;
+      if (loopcount >= 10) state.tSteps = 3 + (loopcount - 10) / 5;
       
-      last_rmse = nrmse;
-      last_prmse = prmse;
+      state.last_rmse = state.nrmse;
+      state.last_prmse = state.prmse;
       loopcount++;
       int ntrain = 0;
-      nrmse = 0.0;
+      state.nrmse = 0.0;
       s = 0.0;
       n = 0;
       
-      if (loopcount > 5) Momentum = state.finalMomentum;
+      if (loopcount > 5) state.Momentum = state.finalMomentum;
       Iterator<MatrixSlice> userVector = inputUserMatrix.iterateAll();
       
       
       while(userVector.hasNext()) {
-        nrmse += runIteration(userVector.next());
+        state.nrmse += this.runIteration(userVector.next());
       }
       
       state.zero(state.CDpos, state.numItems, state.softmax, state.totalFeatures);
@@ -146,36 +148,36 @@ public final class RBMDriver {
       state.zero(state.negvisact, state.numItems, state.softmax);
       state.zero(state.moviecount, state.numItems);
             
-      nrmse=Math.sqrt(nrmse/ntrain);
-      prmse = Math.sqrt(s/n);
+      state.nrmse=Math.sqrt(state.nrmse/ntrain);
+      state.prmse = Math.sqrt(s/n);
       
       if ( state.totalFeatures == 200 ) {
           if ( loopcount > 6 ) {
-              EpsilonW  *= 0.90;
-              EpsilonVB *= 0.90;
-              EpsilonHB *= 0.90;
+              state.EpsilonW  *= 0.90;
+              state.EpsilonVB *= 0.90;
+              state.EpsilonHB *= 0.90;
           } else if ( loopcount > 5 ) {  // With 200 hidden variables, you need to slow things down a little more
-              EpsilonW  *= 0.50;         // This could probably use some more optimization
-              EpsilonVB *= 0.50;
-              EpsilonHB *= 0.50;
+              state.EpsilonW  *= 0.50;         // This could probably use some more optimization
+              state.EpsilonVB *= 0.50;
+              state.EpsilonHB *= 0.50;
           } else if ( loopcount > 2 ) {
-              EpsilonW  *= 0.70;
-              EpsilonVB *= 0.70;
-              EpsilonHB *= 0.70;
+              state.EpsilonW  *= 0.70;
+              state.EpsilonVB *= 0.70;
+              state.EpsilonHB *= 0.70;
           }
       } else {  // The 100 hidden variable case
           if ( loopcount > 8 ) {
-              EpsilonW  *= 0.92;
-              EpsilonVB *= 0.92;
-              EpsilonHB *= 0.92;
+              state.EpsilonW  *= 0.92;
+              state.EpsilonVB *= 0.92;
+              state.EpsilonHB *= 0.92;
           } else if ( loopcount > 6 ) {
-              EpsilonW  *= 0.90;
-              EpsilonVB *= 0.90;
-              EpsilonHB *= 0.90;
+              state.EpsilonW  *= 0.90;
+              state.EpsilonVB *= 0.90;
+              state.EpsilonHB *= 0.90;
           } else if ( loopcount > 2 ) {
-              EpsilonW  *= 0.78;
-              EpsilonVB *= 0.78;
-              EpsilonHB *= 0.78;
+              state.EpsilonW  *= 0.78;
+              state.EpsilonVB *= 0.78;
+              state.EpsilonHB *= 0.78;
           }
   }
 
@@ -196,7 +198,7 @@ public final class RBMDriver {
     job.setJarByClass(RBMDriver.class);
 
     job.waitForCompletion(true);
-    return nrmse; //Sync with call
+    return state.nrmse; //Sync with call
   }
 
   static RBMState getState(Configuration job) throws IOException {

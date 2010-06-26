@@ -29,8 +29,17 @@ public class RBMState {
   double epsilonhb = 0.0006;
   /** Learning rate for biases of hidden units */
   double weightCost = 0.0001;
-  double momentum = 0.8;
+  double initMomentum = 0.8;
+  double Momentum;
   double finalMomentum = 0.9;
+  double EpsilonW;
+  double EpsilonVB;
+  double EpsilonHB;
+  
+  double nrmse;
+  double last_rmse;
+  double prmse;
+  double last_prmse = 0;
   
   final double e = 0.00002; /* Stop condition */
   
