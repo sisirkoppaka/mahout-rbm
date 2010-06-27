@@ -30,6 +30,7 @@ public class RBMState {
   /** Learning rate for biases of hidden units */
   double weightCost = 0.0001;
   double initMomentum = 0.8;
+  double momentum;
   double Momentum;
   double finalMomentum = 0.9;
   double EpsilonW;
@@ -45,6 +46,9 @@ public class RBMState {
   
   int numItems;
   int numUsers;
+  int ntrain;
+  int probeCount;
+  int qualifyCount;
   
   double[][][] vishid;
   double[][] visbiases;
@@ -75,11 +79,12 @@ public class RBMState {
   int[] moviecount;
   int[] movieseencount;
   
-  int tSteps; //Steps of Contrastive Divergence
+  int tSteps; // Steps of Contrastive Divergence
   
-  public RBMState(int totalFeatures, int softmax, double epsilonw, double epsilonvb,
-      double epsilonhb, double weightCost, double momentum, double finalMomentum) {
-
+  public RBMState(int totalFeatures, int softmax, double epsilonw,
+      double epsilonvb, double epsilonhb, double weightCost, double momentum,
+      double finalMomentum) {
+    
     this.totalFeatures = totalFeatures;
     this.softmax = softmax;
     this.epsilonw = epsilonw;

@@ -25,20 +25,22 @@ import org.apache.mahout.math.SequentialAccessSparseVector;
 import org.apache.mahout.math.VectorWritable;
 import org.apache.mahout.math.hadoop.DistributedRowMatrix;
 
-public class RBMInputReducer extends Reducer<IntWritable, DistributedRowMatrix.MatrixEntryWritable, 
-        IntWritable, VectorWritable> {
+public class RBMInputReducer
+    extends
+    Reducer<IntWritable,DistributedRowMatrix.MatrixEntryWritable,IntWritable,VectorWritable> {
   
   @Override
-  protected void reduce(IntWritable record, 
-              Iterable<DistributedRowMatrix.MatrixEntryWritable> recordEntries,
-              Context context) 
-              throws IOException, InterruptedException {
-    RandomAccessSparseVector toWrite = new RandomAccessSparseVector(Integer.MAX_VALUE, 100); //100? or something else?
-
+  protected void reduce(IntWritable record,
+      Iterable<DistributedRowMatrix.MatrixEntryWritable> recordEntries,
+      Context context) throws IOException, InterruptedException {
+    RandomAccessSparseVector toWrite = new RandomAccessSparseVector(
+        Integer.MAX_VALUE, 100); // 100? or something else?
+    
     for (DistributedRowMatrix.MatrixEntryWritable entryItem : recordEntries) {
       toWrite.setQuick(entryItem.getCol(), entryItem.getVal());
     }
-    SequentialAccessSparseVector output = new SequentialAccessSparseVector(toWrite);
+    SequentialAccessSparseVector output = new SequentialAccessSparseVector(
+        toWrite);
     context.write(record, new VectorWritable(output));
   }
 }

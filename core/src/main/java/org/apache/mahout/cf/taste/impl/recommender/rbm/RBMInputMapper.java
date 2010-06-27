@@ -24,17 +24,18 @@ import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 import org.apache.mahout.math.hadoop.DistributedRowMatrix;
 
-public class RBMInputMapper extends Mapper<LongWritable, Text, IntWritable, DistributedRowMatrix.MatrixEntryWritable> {
-
+public class RBMInputMapper
+    extends
+    Mapper<LongWritable,Text,IntWritable,DistributedRowMatrix.MatrixEntryWritable> {
+  
   @Override
-  protected void map(LongWritable key, Text value, Context context) 
-            throws IOException, InterruptedException {
+  protected void map(LongWritable key, Text value, Context context)
+      throws IOException, InterruptedException {
     
-    String [] entry = value.toString().split(",");
-      
-    //User is the key for the Reducer
-    DistributedRowMatrix.MatrixEntryWritable record = 
-      new DistributedRowMatrix.MatrixEntryWritable();
+    String[] entry = value.toString().split(",");
+    
+    // User is the key for the Reducer
+    DistributedRowMatrix.MatrixEntryWritable record = new DistributedRowMatrix.MatrixEntryWritable();
     IntWritable row = new IntWritable(Integer.valueOf(entry[0]));
     record.setRow(-1);
     record.setCol(Integer.valueOf(entry[1]));

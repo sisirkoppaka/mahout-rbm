@@ -42,37 +42,45 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A Recommender based on Restricted Boltzmann Machines.
- * Salakhutdinov R., Mnih A., Hinton G.E.(2007). Restricted Boltzmann Machines for Collaborative Filtering.
+ * A Recommender based on Restricted Boltzmann Machines. Salakhutdinov R., Mnih
+ * A., Hinton G.E.(2007). Restricted Boltzmann Machines for Collaborative
+ * Filtering.
  */
 public final class RBMRecommender extends AbstractRecommender {
   
-  private static final Logger log = LoggerFactory.getLogger(RBMRecommender.class);
+  private static final Logger log = LoggerFactory
+      .getLogger(RBMRecommender.class);
   
   private FastByIDMap<Integer> userMap;
   private FastByIDMap<Integer> itemMap;
   private RBM rbm;
-  //private RBMState state;
+  // private RBMState state;
   
   /** Default optimum constants for 100 hidden variables on the Netflix dataset. */
   private final int totalFeatures = 100;
   private final int softmax = 5;
-  private final double epsilonw = 0.001; /** Learning rate for weights */
-  private final double epsilonvb = 0.008; /** Learning rate for biases of visible units */
-  private final double epsilonhb = 0.0006; /** Learning rate for biases of hidden units */
+  private final double epsilonw = 0.001;
+  /** Learning rate for weights */
+  private final double epsilonvb = 0.008;
+  /** Learning rate for biases of visible units */
+  private final double epsilonhb = 0.0006;
+  /** Learning rate for biases of hidden units */
   private final double weightCost = 0.0001;
   private final double momentum = 0.8;
   private final double finalMomentum = 0.9;
   
-  private final double e = 0.00002; /** Stop condition */
+  private final double e = 0.00002;
   
-  public RBMRecommender(DataModel dataModel, int initialSteps) throws TasteException {
+  /** Stop condition */
+  
+  public RBMRecommender(DataModel dataModel, int initialSteps)
+      throws TasteException {
     super(dataModel);
-        
+    
     loadModelMaps(dataModel);
     
     rbm = new RBM(numUsers, numItems, numFeatures, defaultValue);
-  
+    
     rbm.train();
   }
   
@@ -88,45 +96,47 @@ public final class RBMRecommender extends AbstractRecommender {
    * @param momentum
    * @param finalMomentum
    */
-  public RBMRecommender(DataModel dataModel, int initialSteps, int totalFeatures, int softmax, double epsilonw, double epsilonvb, double epsilonhb, double weightCost, double momentum, double finalMomentum) throws TasteException {
-	  super(dataModel);
-	  
-	  this.totalFeatures = totalFeatures;
-	  this.softmax = softmax;
-	  this.epsilonw = epsilonw;
-	  this.epsilonvb = epsilonvb;
-	  this.epsilonhb = epsilonhb;
-	  this.weightCost = weightCost;
-	  this.momentum = momentum;
-	  this.finalMomentum = finalMomentum;
-
-	  loadModelMaps(dataModel);
-	  
-	  rbm = new RBM(numUsers, numItems, numFeatures, defaultValue);
-
-	  rbm.train();
+  public RBMRecommender(DataModel dataModel, int initialSteps,
+      int totalFeatures, int softmax, double epsilonw, double epsilonvb,
+      double epsilonhb, double weightCost, double momentum, double finalMomentum)
+      throws TasteException {
+    super(dataModel);
+    
+    this.totalFeatures = totalFeatures;
+    this.softmax = softmax;
+    this.epsilonw = epsilonw;
+    this.epsilonvb = epsilonvb;
+    this.epsilonhb = epsilonhb;
+    this.weightCost = weightCost;
+    this.momentum = momentum;
+    this.finalMomentum = finalMomentum;
+    
+    loadModelMaps(dataModel);
+    
+    rbm = new RBM(numUsers, numItems, numFeatures, defaultValue);
+    
+    rbm.train();
   }
   
-  
   private void loadModelMaps(DataModel dataModel) throws TasteException {
-	  int numUsers = dataModel.getNumUsers();
-	  userMap = new FastByIDMap<Integer>(numUsers);
-	    
-	  int idx = 0;
-	  LongPrimitiveIterator userIterator = dataModel.getUserIDs();
-	  while (userIterator.hasNext()) {
-	    userMap.put(userIterator.nextLong(), idx++);
-	  }
-	    
-	  int numItems = dataModel.getNumItems();
-	  itemMap = new FastByIDMap<Integer>(numItems);
-	    
-	  idx = 0;
-	  LongPrimitiveIterator itemIterator = dataModel.getItemIDs();
-	  while (itemIterator.hasNext()) {
-	    itemMap.put(itemIterator.nextLong(), idx++);
-	  }
-	    
+    int numUsers = dataModel.getNumUsers();
+    userMap = new FastByIDMap<Integer>(numUsers);
+    
+    int idx = 0;
+    LongPrimitiveIterator userIterator = dataModel.getUserIDs();
+    while (userIterator.hasNext()) {
+      userMap.put(userIterator.nextLong(), idx++);
+    }
+    
+    int numItems = dataModel.getNumItems();
+    itemMap = new FastByIDMap<Integer>(numItems);
+    
+    idx = 0;
+    LongPrimitiveIterator itemIterator = dataModel.getItemIDs();
+    while (itemIterator.hasNext()) {
+      itemMap.put(itemIterator.nextLong(), idx++);
+    }
+    
   }
   
   public void train(int steps) {
@@ -138,7 +148,8 @@ public final class RBMRecommender extends AbstractRecommender {
   }
   
   @Override
-  public float estimatePreference(long userID, long itemID) throws TasteException {
+  public float estimatePreference(long userID, long itemID)
+      throws TasteException {
     Integer useridx = userMap.get(userID);
     if (useridx == null) {
       throw new NoSuchUserException();
@@ -150,9 +161,10 @@ public final class RBMRecommender extends AbstractRecommender {
     return predictRating(useridx, itemidx);
   }
   
-  //TODO: Rework
+  // TODO: Rework
   @Override
-  public List<RecommendedItem> recommend(long userID, int howMany, IDRescorer rescorer) throws TasteException {
+  public List<RecommendedItem> recommend(long userID, int howMany,
+      IDRescorer rescorer) throws TasteException {
     if (howMany < 1) {
       throw new IllegalArgumentException("1 is the minimum for howMany");
     }
@@ -188,7 +200,7 @@ public final class RBMRecommender extends AbstractRecommender {
       return estimatePreference(theUserID, itemID);
     }
   }
-
+  
   @Override
   public void refresh(Collection<Refreshable> alreadyRefreshed) {
     // TODO Auto-generated method stub

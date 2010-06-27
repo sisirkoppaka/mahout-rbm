@@ -24,14 +24,15 @@ import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+import org.apache.hadoop.mapreduce.lib.output.SequenceFileOutputFormat;
 import org.apache.mahout.common.HadoopUtil;
 import org.apache.mahout.math.VectorWritable;
 import org.apache.mahout.math.hadoop.DistributedRowMatrix;
 
 public class RBMInputDriver {
   
-  public static void runJob(Path input, Path output)
-      throws IOException, InterruptedException, ClassNotFoundException {
+  public static void runJob(Path input, Path output) throws IOException,
+      InterruptedException, ClassNotFoundException {
     HadoopUtil.overwriteOutput(output);
     
     Configuration conf = new Configuration();
@@ -42,7 +43,7 @@ public class RBMInputDriver {
     job.setMapOutputValueClass(DistributedRowMatrix.MatrixEntryWritable.class);
     job.setOutputKeyClass(IntWritable.class);
     job.setOutputValueClass(VectorWritable.class);
-    job.setOutputFormatClass(SequenceFileOutputFormat.class);
+    job.setOutputValueClass(SequenceFileOutputFormat.class);
     job.setMapperClass(RBMInputMapper.class);
     job.setReducerClass(RBMInputReducer.class);
     

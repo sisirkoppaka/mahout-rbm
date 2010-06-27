@@ -66,8 +66,7 @@ public final class RBMDriver {
 
   public static void runJob() throws IOException, InterruptedException, ClassNotFoundException {
 
-    Path stateIn = new Path(output, "state-0");
-    writeInitialState(stateIn, numTopics, numWords);
+    //Path stateIn = new Path(output, "state-0");
     boolean converged = false;
     
     DRand randn;
@@ -137,7 +136,7 @@ public final class RBMDriver {
       
       
       while(userVector.hasNext()) {
-        state.nrmse += this.runIteration(userVector.next());
+        state.nrmse += runIteration(userVector.next());
       }
       
       state.zero(state.CDpos, state.numItems, state.softmax, state.totalFeatures);
@@ -148,7 +147,7 @@ public final class RBMDriver {
       state.zero(state.negvisact, state.numItems, state.softmax);
       state.zero(state.moviecount, state.numItems);
             
-      state.nrmse=Math.sqrt(state.nrmse/ntrain);
+      state.nrmse = Math.sqrt(state.nrmse/ntrain);
       state.prmse = Math.sqrt(s/n);
       
       if ( state.totalFeatures == 200 ) {
@@ -179,9 +178,12 @@ public final class RBMDriver {
               state.EpsilonVB *= 0.78;
               state.EpsilonHB *= 0.78;
           }
+          
+          //recordErrors();
   }
 
-  public static double runIteration() throws IOException, InterruptedException, ClassNotFoundException {
+
+  public static double runIteration(MatrixSlice userVector) throws IOException, InterruptedException, ClassNotFoundException {
     Configuration conf = new Configuration();
     
     Job job = new Job(conf);
