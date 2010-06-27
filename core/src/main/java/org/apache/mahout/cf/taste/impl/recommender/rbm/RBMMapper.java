@@ -204,8 +204,8 @@ public class RBMMapper extends
         
         // Verify this -> ntrain += d0;
         
-        /** Sum up probe rmse */
-        int base = useridx[u][0]; // TODO: Replace
+        /** Sum up probe rmse --> Wait till PROBE is available here, till then do with training RMSE */
+        /**int base = useridx[u][0]; // TODO: Replace
         for (i = 1; i < 2; i++)
           base += useridx[u][i]; // TODO: Replace
         int d = useridx[u][2]; // TODO: Replace
@@ -219,7 +219,7 @@ public class RBMMapper extends
           double vdelta = ((r) - expectedV);
           s += vdelta * vdelta;
         }
-        n += d;
+        n += d;*/
       }
       
       /** Are we looping again? Load curposvisstates */
