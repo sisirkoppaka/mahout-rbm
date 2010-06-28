@@ -126,6 +126,10 @@ public class RBMState {
     
   }
   
+  public RBMState() {
+    // TODO Auto-generated constructor stub
+  }
+
   public void zero(int[] arraySet, int i) {
     int m;
     
