@@ -16,9 +16,21 @@
  */
 package org.apache.mahout.cf.taste.impl.recommender.rbm;
 
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+
+import org.apache.hadoop.conf.Configured;
+import org.apache.hadoop.io.Writable;
+import org.apache.mahout.math.Varint;
+
+import java.io.DataInput;
+import java.io.DataOutput;
+import java.io.IOException;
+import java.util.Iterator;
 import org.apache.mahout.math.Matrix;
 
-public class RBMState {
+public class RBMState extends Configured implements Writable {
   /** Default optimum constants for 100 hidden variables on the Netflix dataset. */
   int totalFeatures = 100;
   int softmax = 5;
@@ -166,6 +178,128 @@ public class RBMState {
         }
       }
     }
+  }
+ 
+  @Override
+  public void write(DataOutput out) throws IOException {
+
+    int i,j,k;
+    Varint.writeUnsignedVarInt(6, out);
+    Varint.writeUnsignedVarInt(3, out);
+    Varint.writeUnsignedVarInt(numItems, out);
+    Varint.writeUnsignedVarInt(softmax, out);
+    Varint.writeUnsignedVarInt(totalFeatures, out);
+    for(i=0;i<numItems;i++) {
+      for(j=0;j<softmax;j++) {
+        for(k=0;k<totalFeatures;k++) {
+          out.writeDouble(vishid[i][j][k]);
+        }
+      }
+    }
+    Varint.writeUnsignedVarInt(2, out);
+    Varint.writeUnsignedVarInt(numItems, out);
+    Varint.writeUnsignedVarInt(softmax, out);
+    for(i=0;i<numItems;i++) {
+      for(j=0;j<softmax;j++) {
+        out.writeDouble(visbiases[i][j]);
+      }
+    }
+    Varint.writeUnsignedVarInt(1, out);
+    Varint.writeUnsignedVarInt(totalFeatures, out);
+    for(i=0;i<totalFeatures;i++) {
+      out.writeDouble(hidbiases[state.totalFeatures]);
+    }
+    Varint.writeUnsignedVarInt(3, out);
+    Varint.writeUnsignedVarInt(numItems, out);
+    Varint.writeUnsignedVarInt(softmax, out);
+    Varint.writeUnsignedVarInt(totalFeatures, out);
+    for(i=0;i<numItems;i++) {
+      for(j=0;j<softmax;j++) {
+        for(k=0;k<totalFeatures;k++) {
+          out.writeDouble(CDinc[i][j][k]);
+        }
+      }
+    }
+    Varint.writeUnsignedVarInt(1, out);
+    Varint.writeUnsignedVarInt(totalFeatures, out);
+    for(i=0;i<totalFeatures;i++) {
+      out.writeDouble(hidbiasinc[totalFeatures]);
+    }
+    Varint.writeUnsignedVarInt(2, out);
+    Varint.writeUnsignedVarInt(numItems, out);
+    Varint.writeUnsignedVarInt(softmax, out);
+    for(i=0;i<numItems;i++) {
+      for(j=0;j<softmax;j++) {
+        out.writeDouble(visbiasinc[i][j]);
+      }
+    }
+  }
+
+  @Override
+  public void readFields(DataInput in) throws IOException {
+
+    int size = Varint.readUnsignedVarInt(in);
+    RBMState s = new RBMState();
+    
+    int i,j,k;
+    int a,b,c;
+    Varint.readUnsignedVarInt(in);
+    Varint.readUnsignedVarInt(in);
+    a = Varint.readUnsignedVarInt(in);
+    b = Varint.readUnsignedVarInt(in);
+    c = Varint.readUnsignedVarInt(in);
+    for(i=0;i<a;i++) {
+      for(j=0;j<b;j++) {
+        for(k=0;k<c;k++) {
+          s.vishid[i][j][k]=in.readDouble();
+        }
+      }
+    }
+    Varint.readUnsignedVarInt(in);
+    a = Varint.readUnsignedVarInt(in);
+    b = Varint.readUnsignedVarInt(in);
+    for(i=0;i<a;i++) {
+      for(j=0;j<b;j++) {
+        s.visbiases[i][j]=in.readDouble();
+      }
+    }
+    Varint.readUnsignedVarInt(in);
+    a = Varint.readUnsignedVarInt(in);
+    for(i=0;i<a;i++) {
+      s.hidbiases[i]=in.readDouble();
+    }
+    Varint.readUnsignedVarInt(in);
+    a = Varint.readUnsignedVarInt(in);
+    b = Varint.readUnsignedVarInt(in);
+    c = Varint.readUnsignedVarInt(in);
+    for(i=0;i<a;i++) {
+      for(j=0;j<b;j++) {
+        for(k=0;k<c;k++) {
+          s.CDinc[i][j][k]=in.readDouble();
+        }
+      }
+    }
+    Varint.readUnsignedVarInt(in);
+    a = Varint.readUnsignedVarInt(in);
+    for(i=0;i<a;i++) {
+      s.hidbiasinc[i]=in.readDouble();
+    }
+    Varint.readUnsignedVarInt(in);
+    a = Varint.readUnsignedVarInt(in);
+    b = Varint.readUnsignedVarInt(in);
+    for(i=0;i<a;i++) {
+      for(j=0;j<b;j++) {
+        s.visbiasinc[i][j]=in.readDouble();
+      }
+    }
+    
+    this.vishid = s.vishid;
+    this.visbiases = s.visbiases;
+    this.hidbiases = s.hidbiases;
+    this.CDinc = s.CDinc;
+    this.hidbiasinc = s.hidbiasinc;
+    this.visbiasinc = s.visbiasinc;
+    
   }
   
 }
