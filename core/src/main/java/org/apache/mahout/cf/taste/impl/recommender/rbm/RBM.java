@@ -17,7 +17,11 @@
 
 package org.apache.mahout.cf.taste.impl.recommender.rbm;
 
+import java.util.Map;
+
 import org.apache.hadoop.conf.Configuration;
+import org.apache.hadoop.fs.Path;
+import org.apache.hadoop.mapred.JobConf;
 import org.apache.mahout.common.AbstractJob;
 import org.apache.mahout.math.hadoop.DistributedRowMatrix;
 import org.apache.mahout.math.jet.random.engine.DRand;
@@ -37,11 +41,11 @@ public class RBM extends AbstractJob {
   
   @Override
   public int run(String[] arg0) throws Exception {
-    int numRows, numCols;
+    int numRows=10, numCols=10;
       //Set command line options
     Configuration conf = new Configuration();
-    addOption("input", "i", "CSV Input file in (user,item,rating) format", true);
-    addOption("output", "o", "Output location", true);
+    buildOption("input", "i", "CSV Input file in (user,item,rating) format");
+    buildOption("output", "o", "Output location");
     Map<String, String> args = parseArguments(arg0);
     
     Path input = new Path(args.get("--input"));
@@ -52,8 +56,8 @@ public class RBM extends AbstractJob {
     RBMInputDriver.runJob(input, inputUserMatrixPath);
         
     //Get values of numRows, numCols here
-    DistributedRowMatrix inputUserMatrix = new DistributedRowMatrix(inputUserMatrixPath,
-        new Path(inputUserMatrixPath.parent(), 'inputUserMatrix'), numRows, numCols);
+    //Path inputUserMatrixPath = new Path(inputUserMatrixPath.parent(), "inputUserMatrix");
+    DistributedRowMatrix inputUserMatrix = new DistributedRowMatrix("inputUserseqfile", "inputUserMatrix", numRows, numCols);
     
     JobConf depConf = new JobConf(conf);
     inputUserMatrix.configure(depConf);
@@ -62,32 +66,34 @@ public class RBM extends AbstractJob {
     
     driver = new RBMDriver(inputUserMatrix, inputMovieMatrix);
     driver.runJob();
+    return 0;
   }
   
   public void initScore() {
     int i, u, m, j, n;
     int base0, d0;
     
-    for (m = 0; m < numItems; m++) {
+    for (m = 0; m < state.numItems; m++) {
       for (n = 0; n < 5; n++) {
-        moviercount[m * softmax + n] = 0;
+        state.moviercount[m * state.softmax + n] = 0;
       }
     }
     
-    for (u = 0; u < numUsers; u++) {
-      base0 = useridx[u][0];
+    for (u = 0; u < state.numUsers; u++) {
+      //base0 = state.useridx[u][0];
       d0 = untrain(u);
       
       // For all rated movies
       for (j = 0; j < d0; j++) {
-        int m = userent[base0 + j] & USER_MOVIEMASK; // TODO: Replace
-        int r = (userent[base0 + j] >> USER_LMOVIEMASK) & 7; // TODO: Replace
-        moviercount[m * softmax + r]++;
+        //int m = userent[base0 + j] & USER_MOVIEMASK; // TODO: Replace
+        //int r = (userent[base0 + j] >> USER_LMOVIEMASK) & 7; // TODO: Replace
+        //moviercount[m * softmax + r]++;
       }
     }
   }
   
   public int train() {
+    return 0;
    //Moved to RBMDriver.runJob() Remove this stub when done
   }
   

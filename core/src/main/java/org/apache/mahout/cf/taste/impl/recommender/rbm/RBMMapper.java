@@ -43,7 +43,7 @@ public class RBMMapper extends
   public void map(IntWritable user, VectorWritable ratings, Context context)
       throws IOException, InterruptedException {
     int i, j, k, h;
-    int u, s, n, f;
+    int u = 0, s = 0, n=1, f;
     
     /** Probabilities */
     state.zero(state.negvisprobs, state.numItems, state.softmax);
@@ -98,7 +98,7 @@ public class RBMMapper extends
       count += state.probeCount;
       /** For probe errors */
       for (j = 0; j < count; j++) {
-        int m = userent[base0 + j] & USER_MOVIEMASK; // TODO: Replace
+        int m = 0;//userent[base0 + j] & USER_MOVIEMASK; // TODO: Replace
         for (h = 0; h < state.totalFeatures; h++) {
           /** Wherever sampled hidden states == 1, accumulate Weight values */
           if (state.curposhidstates[h] == 1) {
@@ -226,7 +226,7 @@ public class RBMMapper extends
       if (!finalTStep) {
         for (h = 0; h < state.totalFeatures; h++)
           state.curposhidstates[h] = state.neghidstates[h];
-        state.zero(state.negvisprobs);
+        // Correct this state.zero(state.negvisprobs);
       }
     } while (++stepT < state.tSteps);
     

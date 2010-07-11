@@ -207,7 +207,7 @@ public class RBMState extends Configured implements Writable {
     Varint.writeUnsignedVarInt(1, out);
     Varint.writeUnsignedVarInt(totalFeatures, out);
     for(i=0;i<totalFeatures;i++) {
-      out.writeDouble(hidbiases[state.totalFeatures]);
+      out.writeDouble(hidbiases[totalFeatures]);
     }
     Varint.writeUnsignedVarInt(3, out);
     Varint.writeUnsignedVarInt(numItems, out);

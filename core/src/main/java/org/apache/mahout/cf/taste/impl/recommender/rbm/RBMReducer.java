@@ -28,6 +28,6 @@ public class RBMReducer extends Reducer<IntPairWritable,DoubleWritable,IntPairWr
                      Iterable<DoubleWritable> values,
                      Context context) throws java.io.IOException, InterruptedException {
     
-    
+  }  
   
 }

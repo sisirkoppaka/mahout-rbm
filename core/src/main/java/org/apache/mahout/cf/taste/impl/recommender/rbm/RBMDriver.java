@@ -69,9 +69,9 @@ public final class RBMDriver {
     //Path stateIn = new Path(output, "state-0");
     boolean converged = false;
     
-    DRand randn;
-    state = new RBMState(totalFeatures, softmax, epsilonw, epsilonvb,
-        epsilonhb, weightCost, momentum, finalMomentum);
+    DRand randn = null;
+    state = new RBMState(state.totalFeatures, state.softmax, state.epsilonw, state.epsilonvb,
+        state.epsilonhb, state.weightCost, state.momentum, state.finalMomentum);
     
     /** Set initial weights */
     int i, j, h, k;
@@ -178,6 +178,7 @@ public final class RBMDriver {
               state.EpsilonVB *= 0.78;
               state.EpsilonHB *= 0.78;
           }
+      }}
           
           //recordErrors();
   }
@@ -204,5 +205,6 @@ public final class RBMDriver {
   }
 
   static RBMState getState(Configuration job) throws IOException {
-    return this.state;
+    return state;
+  }
 }

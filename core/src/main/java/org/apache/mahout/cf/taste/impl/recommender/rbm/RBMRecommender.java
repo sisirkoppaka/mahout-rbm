@@ -54,7 +54,7 @@ public final class RBMRecommender extends AbstractRecommender {
   private FastByIDMap<Integer> userMap;
   private FastByIDMap<Integer> itemMap;
   private RBM rbm;
-  // private RBMState state;
+  private RBMState state;
   
   /** Default optimum constants for 100 hidden variables on the Netflix dataset. */
   private final int totalFeatures = 100;
@@ -79,7 +79,10 @@ public final class RBMRecommender extends AbstractRecommender {
     
     loadModelMaps(dataModel);
     
-    rbm = new RBM(numUsers, numItems, numFeatures, defaultValue);
+    //int numFeatures=100;
+    //int defaultValue=0;
+    
+    //rbm = new RBM(state.numUsers, state.numItems, numFeatures, defaultValue);
     
     rbm.train();
   }
@@ -102,7 +105,7 @@ public final class RBMRecommender extends AbstractRecommender {
       throws TasteException {
     super(dataModel);
     
-    this.totalFeatures = totalFeatures;
+    /*this.totalFeatures = totalFeatures;
     this.softmax = softmax;
     this.epsilonw = epsilonw;
     this.epsilonvb = epsilonvb;
@@ -115,7 +118,7 @@ public final class RBMRecommender extends AbstractRecommender {
     
     rbm = new RBM(numUsers, numItems, numFeatures, defaultValue);
     
-    rbm.train();
+    rbm.train();*/
   }
   
   private void loadModelMaps(DataModel dataModel) throws TasteException {
